@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UserLoginAPI - Test</title>
+
+    {% block scripts %}
+        <script>
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    //var cookie = jQuery.trim(cookies[i]);
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        var csrftoken = getCookie('csrftoken');
+
+        var xhr;
+
+        // Ajax로 등록
+        function postLogin() {
+
+            var cuserID = document.getElementById('userID_').value;
+            var cuserPWD = document.getElementById('userPWD_').value;
+
+            var data = { userID: cuserID, userPWD: cuserPWD }
+            var datastr = JSON.stringify(data);
+
+            //alert(datastr);
+            //return false;
+
+            xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    var data = xhr.responseText;
+                    var obj = JSON.parse(data);
+
+                    var node = document.createElement("DIV");
+                    var textnode = document.createTextNode(obj.name + " - " + obj.timezone + " added...");
+                    node.appendChild(textnode);
+                    document.getElementById("usertable").appendChild(node);
+
+                    //alert(obj.name + " registered...");
+                }
+            };
+
+            console.log(datastr)
+            xhr.open("POST", "/users");
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            xhr.setRequestHeader("Content-Type","application/json")
+            xhr.send(datastr);
+        }
+
+
+        // Ajax로 수정
+        function putUser(elem) {
+
+            var userCounter = parseInt(elem.getAttribute('userCounter'));
+            var cuserID = document.getElementById('name_'+userCounter).value;
+            var cuserPWD = document.getElementById('timezone_'+userCounter).value;
+
+            var data = { counter: userCounter, userID: cuserID, userPWD: cuserPWD }
+            var datastr = JSON.stringify(data);
+
+            //alert(datastr);
+            //return false;
+
+            xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    var data = xhr.responseText;
+                    var obj = JSON.parse(data);
+                    alert(obj.name + " modified...");
+                    document.getElementById('name_'+userCounter).style.color = "#FF6600";
+                    document.getElementById('timezone_'+userCounter).style.color = "#FF6600";
+                }
+            };
+            xhr.open("PUT", "/users");
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            xhr.send(datastr);
+        }
+
+         // Ajax로 삭제
+         function deleteUser(userCounter) {
+            if (confirm("삭제 하시겠습니까?") == false) {
+                return false;
+            }
+
+            var strurl = "/users/" + userCounter;
+            //alert(strurl);
+            //return false;
+
+            xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    var data = xhr.responseText;
+                    var obj = JSON.parse(data);
+
+                    document.getElementById('userbox_'+userCounter).remove();
+                    //alert(obj.result_msg);
+                }
+            };
+            xhr.open("DELETE", strurl);
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            xhr.send(null);
+        }
+
+        </script>
+    {% endblock %}
+</head>
+<body>
+    <div style="padding:10px;">
+        <a href="/">HOME</a>
+    </div>
+    <h1 style="padding:10px;">User list</h1>
+    <div style="margin:20px 0">
+        <input type="text" id="userID_" value="아이디" />
+        <input type="text" id="userPWD_" value="비밀번호" />
+        <button onclick="postLogin()">확인</button>
+    </div>
+
+    <div  id="usertable">
+        <table width="100%" border="1" cellpadding="0" cellspacing="0">
+        {% if rsUser %}
+            {% for user in rsUser %}
+            <tr style="padding:10px;height:45px;" id="userbox_{{user.counter}}">
+                <td align="center">{{user.counter}}</td>
+                <td align="center"><input type="text" id="userID_{{user.counter}}" value="{{user.userID}}" /></td>
+                <td align="center"><input type="text" id="userPWD_{{user.counter}}" value="{{user.userPWD}}" /></td>
+                <td align="center"><a href="/users/{{user.counter}}"><button>VIEW</button></a></td>
+                <td align="center"><button userCounter="{{user.counter}}" onclick="putUser(this)">수정</button></td>
+                <td align="center"><button onclick="deleteUser({{user.counter}})">삭제</button></td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr style="padding:10px;border-top:solid 1px #3388cc;">
+                <td>
+                No user list...
+                </td>
+            </tr>
+        {% endif %}
+        </table>
+    </div>
+</body>
+
+</html>

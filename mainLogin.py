@@ -14,6 +14,8 @@ login_db = [
     },
 ]
 
+db = []
+
 # data Model
 class UserInfo(BaseModel):
     userID: str
@@ -28,30 +30,61 @@ def index():
     }
 
 
-@app.get("/login", response_class=HTMLResponse)
+@app.get("/users", response_class=HTMLResponse)
 def get_login(request: Request):
     context = {}
-    return template.TemplateResponse('login_page.html', context)
+    rsUser = []
+
+    print("getLog {}".format(db))
+    cnt = 0
+    for user in db:
+        cnt += 1
+        rsUser.append({'counter': cnt, 'userID': user['userID'], 'userPWD': user['userPWD']})
+    
+    context['request'] = request
+    context['rsUser'] = rsUser
+    print(context)
+
+    return template.TemplateResponse('enlist_user.html', context)
 
 
+@app.post("/users")
+def create_user(userInfo: UserInfo):
+    db.append(userInfo.dict())
+    print("after post")
+    print(db)
+    return db[-1]
 
 
 
 @app.post("/login")
 def login(userInfo: UserInfo):
+    print(userInfo)
+    print(resultMessage)
     if userInfo.userID == login_db[0]["userID"]:
         if userInfo.userPWD == login_db[0]["userPWD"]:
-            return {
+            resultMessage.append({
                 "result":"true",
                 "message":"Hello, Davidyoon",
-            }
+            })
+            return resultMessage[-1]
         else:
-            return {
+            resultMessage.append({
                 "result":"false",
                 "message":"Please check your password"
-            }
+            })
+            return resultMessage[-1]
     else:
-        return {
+        resultMessage.append({
             "result":"false",
             "message":"Please check your ID"
-        }
+        })
+        return  resultMessage[-1]
+
+@app.get("/loginChecker", response_class=HTMLResponse)
+def get_loginInput(request: Request):
+    context = {}
+
+    context['request'] = request
+
+    return template.TemplateResponse('enlist_user.html', context)
