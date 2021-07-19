@@ -55,6 +55,7 @@
             };
             xhr.open("POST", "/cities");
             xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            xhr.setRequestHeader("Content-Type","application/json")
             xhr.send(datastr);
         }
 

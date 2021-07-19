@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UserLoginAPI - Test</title>
+
+    {% block scripts %}
+        <script>
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+
+                        if (cookie.substring(0, name.length +1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+
+                return cookieValue
+            }
+            var csrftoken = getCookie('csrftoken')
+            
+            
+            var xhr;
+            function postLogin() {
+                var cuserID = document.getElementById('userID_').value;
+                var cuserPWD = document.getElementById('userPWD_').value;
+
+                var data = { userID: cuserID, userPWD: cuserPWD };
+                var datastr = JSON.stringify(data)
+
+                xhr = new XMLHttpRequest();
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4) {
+                        var data = xhr.reponseText;
+                        var obj = JSON.parse(data);
+
+                        var node = document.createElement("DIV");
+                        var textnode = document.createTextNode(obj.userID+ " - " + obj.userPWD + " added...");
+                        node.appendChild(textnode)
+                        document.getElementById("logintable").appendChild(node);
+                    }
+                };
+                
+                xhr.open("POST", "/login");
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.send(datastr)
+
+            }
+        </script>
+    {% endblock %}
+</head>
+<body>
+    <div style="padding:10px;">
+        <a href="/">HOME</a>
+    </div>
+</body>
+
+</html>
